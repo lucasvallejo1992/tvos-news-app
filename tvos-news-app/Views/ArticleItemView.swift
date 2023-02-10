@@ -36,8 +36,8 @@ struct ArticleItemView: View {
                         }
                     }
                 }
+                .padding([.horizontal, .bottom])
             }
-            .padding([.horizontal, .bottom])
         }
     }
     
