@@ -5,27 +5,41 @@
 //  Created by Lucas Vallejo on 06/02/2023.
 //
 
+import Combine
 import SwiftUI
 
 @MainActor
 class ArticleSearchViewModel: ObservableObject {
-
     @Published var phase: DataFetchPhase<[Article]> = .empty
     @Published var searchQuery = ""
     @Published var history = [String]()
     @Published var currentSearch: String?
+
     private let historyDataStore = PlistDataStore<[String]>(filename: "histories")
     private let historyMaxLimit = 10
-    
+    private var cancellables = Set<AnyCancellable>()
     private let newsAPI = NewsAPI.shared
-    
     static let shared = ArticleSearchViewModel()
+
     private var trimmedSearchQuery: String {
         searchQuery.trimmingCharacters(in: .whitespacesAndNewlines)
     }
     
     private init() {
         load()
+        observeSearchQuery()
+    }
+    
+    private func observeSearchQuery() {
+        $searchQuery
+            .debounce(for: 1, scheduler: DispatchQueue.main)
+            .sink { _ in
+                Task { [weak self] in
+                    guard let self = self else { return }
+                    await self.searchArticle()
+                }
+            }
+            .store(in: &cancellables)
     }
     
     func addHistory(_ text: String) {
@@ -43,6 +57,7 @@ class ArticleSearchViewModel: ObservableObject {
         guard let index = history.firstIndex(where: { text.lowercased() == $0.lowercased() }) else {
             return
         }
+
         history.remove(at: index)
         historiesUpdated()
     }
