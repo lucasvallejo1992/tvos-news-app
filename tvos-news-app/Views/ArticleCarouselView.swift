@@ -9,7 +9,6 @@ import SwiftUI
 
 struct ArticleCarouselView: View {
     @EnvironmentObject private var bookmarkVM: ArticleBookmarkViewModel
-    
     let title: String
     let articles: [Article]
     
@@ -19,15 +18,11 @@ struct ArticleCarouselView: View {
                 .font(.headline)
                 .foregroundStyle(.primary)
                 .padding(.horizontal, 64)
-            
             ScrollView(.horizontal) {
                 LazyHStack(spacing: 32) {
                     ForEach(articles) { article in
                         NavigationLink {
-                            Text(title)
-                                .font(.headline)
-                                .foregroundStyle(.primary)
-                                .padding(.horizontal, 64)
+                            ArticleDetailView(article: article)
                         } label: {
                             ArticleItemView(article: article)
                                 .frame(width: 420, height: 420)
